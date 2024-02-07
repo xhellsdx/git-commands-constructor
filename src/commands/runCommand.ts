@@ -13,7 +13,7 @@ import {
 
 export const runCommand = async () => {
   const commands = readConfig<TCommand[]>(EXTENSION_CONFIGURATION_PROPERTIES.commands);
-  const taskPrefix = readConfig<string>(EXTENSION_CONFIGURATION_PROPERTIES.taskPrefix);
+  const taskPattern = readConfig<string>(EXTENSION_CONFIGURATION_PROPERTIES.taskPattern);
   const groupsOrder = readConfig<string[]>(EXTENSION_CONFIGURATION_PROPERTIES.groupsOrder);
 
   if (!Array.isArray(commands))
@@ -21,19 +21,15 @@ export const runCommand = async () => {
 
   if (!commands.length) return showErrorMessage('no commands were created');
 
-  if (typeof taskPrefix !== 'string')
-    return showErrorMessage(`${EXTENSION_CONFIGURATION_PROPERTIES.taskPrefix} must be a string`);
+  if (typeof taskPattern !== 'string')
+    return showErrorMessage(`${EXTENSION_CONFIGURATION_PROPERTIES.taskPattern} must be a string`);
 
   if (!Array.isArray(groupsOrder))
     return showErrorMessage(`${EXTENSION_CONFIGURATION_PROPERTIES.groupsOrder} must be an array`);
 
-  const commandsVariablesData = await buildCommandsVariablesData(taskPrefix);
+  const commandsVariablesData = await buildCommandsVariablesData(taskPattern);
   if (!commandsVariablesData) return;
 
-  console.log(
-    'sortCommandsByGroup(commands, groupsOrder): ',
-    sortCommandsByGroup(commands, groupsOrder),
-  );
   const commandsSelectOptions = sortCommandsByGroup(commands, groupsOrder).reduce<
     TCommandsQuickPickItem[]
   >((acc, { name, code, group }) => {
@@ -46,8 +42,6 @@ export const runCommand = async () => {
 
     const prevCommand = acc.at(-1);
 
-    console.log('group: ', group);
-    console.log('prevCommand?.group: ', prevCommand?.group);
     if (group !== prevCommand?.group) {
       acc.push({
         label: group,
@@ -66,7 +60,6 @@ export const runCommand = async () => {
 
     return acc;
   }, []);
-  console.log('commandsSelectOptions: ', commandsSelectOptions);
 
   const selectedCommand = await vscode.window.showQuickPick(commandsSelectOptions, {
     matchOnDetail: true,

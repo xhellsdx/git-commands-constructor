@@ -18,10 +18,10 @@ export const execShell = (cmd: string, options: ExecOptions = DEFAULT_EXEC_OPTIO
   });
 
 export const buildCommandsVariablesData = async (
-  tasksPrefix: string,
+  taskPattern: string,
 ): Promise<TCommandsVariablesData | undefined> => {
   const clipboardText = await vscode.env.clipboard.readText();
-  const hasTasksPrefix = Boolean(tasksPrefix);
+  const hasTasksPrefix = Boolean(taskPattern);
 
   let currentBranchName = '';
 
@@ -34,10 +34,10 @@ export const buildCommandsVariablesData = async (
     return;
   }
 
-  const taskRegExp = new RegExp(`^${tasksPrefix}-\\d+$`);
+  const taskRegExp = new RegExp(taskPattern);
   const isCurrentBranchTask = hasTasksPrefix && taskRegExp.test(currentBranchName);
 
-  const releaseBranchTaskRegExp = new RegExp(`^release\\/(${tasksPrefix}-\\d+)$`);
+  const releaseBranchTaskRegExp = new RegExp(`^release\\/(${taskPattern.replace(/[^&]/, '')})$`);
   const releaseBranchTask = hasTasksPrefix
     ? currentBranchName.match(releaseBranchTaskRegExp)?.[1]
     : '';
